@@ -115,3 +115,44 @@
         (ok game-id)
     )
 )
+
+;; Game mechanics
+(define-public (make-move (game-id uint) (move-type uint))
+    (let (
+        (game (unwrap! (map-get? games {game-id: game-id}) ERR-GAME-NOT-FOUND))
+        (player-char (unwrap! (map-get? characters {game-id: game-id, player: tx-sender}) 
+            ERR-NOT-PLAYER))
+    )
+        ;; Verify game state
+        (asserts! (is-eq (get state game) STATE-IN-PROGRESS) ERR-INVALID-STATE)
+        (asserts! (is-current-player game-id tx-sender) ERR-NOT-AUTHORIZED)
+        
+        ;; Calculate damage
+        (let (
+            (damage (calculate-damage move-type player-char))
+            (opponent (get-opponent game tx-sender))
+            (opponent-char (unwrap! (map-get? characters 
+                {game-id: game-id, player: opponent}) ERR-NOT-PLAYER))
+        )
+            ;; Apply damage
+            (try! (apply-damage game-id opponent damage))
+            
+            ;; Record move
+            (map-set game-moves
+                {game-id: game-id, move-number: (get-move-count game-id)}
+                {
+                    player: tx-sender,
+                    move-type: move-type,
+                    damage: damage,
+                    timestamp: block-height
+                }
+            )
+            
+            ;; Check for game end
+            (if (is-game-over opponent-char)
+                (distribute-rewards game-id tx-sender)
+                (ok true)
+            )
+        )
+    )
+)
