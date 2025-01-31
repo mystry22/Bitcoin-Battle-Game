@@ -216,3 +216,31 @@
         (ok true)
     )
 )
+
+;; Utility functions
+(define-private (is-current-player (game-id uint) (player principal))
+    (let (
+        (game (unwrap! (map-get? games {game-id: game-id}) ERR-GAME-NOT-FOUND))
+        (last-move (get-last-move game-id))
+    )
+        (if (is-none last-move)
+            (is-eq player (unwrap! (get player1 game) false))
+            (not (is-eq player (unwrap-panic (get player last-move))))
+        )
+    )
+)
+
+(define-private (get-last-move (game-id uint))
+    (map-get? game-moves {game-id: game-id, move-number: (- (get-move-count game-id) u1)})
+)
+
+(define-private (get-move-count (game-id uint))
+    (default-to u0 (get last-move (unwrap! (map-get? games {game-id: game-id}) ERR-GAME-NOT-FOUND)))
+)
+
+(define-private (get-opponent (game {creator: principal, stake: uint, btc-reward: uint, state: uint, player1: (optional principal), player2: (optional principal), winner: (optional principal), created-at: uint, last-move: uint}) (player principal))
+    (if (is-eq player (unwrap-panic (get player1 game)))
+        (unwrap-panic (get player2 game))
+        (unwrap-panic (get player1 game))
+    )
+)
