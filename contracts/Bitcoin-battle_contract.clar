@@ -49,3 +49,26 @@
         special-moves: uint
     }
 )
+
+(define-map game-moves
+    {game-id: uint, move-number: uint}
+    {
+        player: principal,
+        move-type: uint,
+        damage: uint,
+        timestamp: uint
+    }
+)
+
+;; Variables
+(define-data-var game-counter uint u0)
+(define-data-var btc-height uint u0)
+
+;; Read-only functions
+(define-read-only (get-game (game-id uint))
+    (map-get? games {game-id: game-id})
+)
+
+(define-read-only (get-character (game-id uint) (player principal))
+    (map-get? characters {game-id: game-id, player: player})
+)
