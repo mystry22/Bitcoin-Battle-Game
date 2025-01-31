@@ -22,3 +22,30 @@
 (define-constant STATE-OPEN u1)
 (define-constant STATE-IN-PROGRESS u2)
 (define-constant STATE-COMPLETED u3)
+
+;; Data Maps
+(define-map games
+    {game-id: uint}
+    {
+        creator: principal,
+        stake: uint,
+        btc-reward: uint,
+        state: uint,
+        player1: (optional principal),
+        player2: (optional principal),
+        winner: (optional principal),
+        created-at: uint,
+        last-move: uint
+    }
+)
+
+(define-map characters
+    {game-id: uint, player: principal}
+    {
+        char-type: uint,
+        health: uint,
+        attack: uint,
+        defense: uint,
+        special-moves: uint
+    }
+)
