@@ -12,3 +12,13 @@
 (define-constant ERR-ALREADY-JOINED (err u105))
 (define-constant ERR-NOT-PLAYER (err u106))
 (define-constant MIN-STAKE u1000000) ;; Minimum stake in microSTX
+
+;; Character Types
+(define-constant TYPE-WARRIOR u1)
+(define-constant TYPE-MAGE u2)
+(define-constant TYPE-ARCHER u3)
+
+;; Game States
+(define-constant STATE-OPEN u1)
+(define-constant STATE-IN-PROGRESS u2)
+(define-constant STATE-COMPLETED u3)
