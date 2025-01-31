@@ -156,3 +156,63 @@
         )
     )
 )
+
+;; Helper functions
+(define-private (get-initial-stats (char-type uint))
+    (match char-type
+        TYPE-WARRIOR {char-type: TYPE-WARRIOR, health: u100, attack: u15, defense: u10, special-moves: u3}
+        TYPE-MAGE {char-type: TYPE-MAGE, health: u80, attack: u20, defense: u5, special-moves: u5}
+        TYPE-ARCHER {char-type: TYPE-ARCHER, health: u90, attack: u18, defense: u7, special-moves: u4}
+    )
+)
+
+(define-private (calculate-damage (move-type uint) (attacker {char-type: uint, health: uint, attack: uint, defense: uint, special-moves: uint}))
+    (let (
+        (base-damage (get attack attacker))
+    )
+        (if (is-eq move-type u2)
+            (* base-damage u2) ;; Special move
+            base-damage
+        )
+    )
+)
+
+(define-private (apply-damage (game-id uint) (defender principal) (damage uint))
+    (let (
+        (defender-char (unwrap! (map-get? characters {game-id: game-id, player: defender})
+            ERR-NOT-PLAYER))
+        (new-health (- (get health defender-char) damage))
+    )
+        (map-set characters
+            {game-id: game-id, player: defender}
+            (merge defender-char {health: new-health})
+        )
+        (ok true)
+    )
+)
+
+(define-private (is-game-over (character {char-type: uint, health: uint, attack: uint, defense: uint, special-moves: uint}))
+    (<= (get health character) u0)
+)
+
+(define-private (distribute-rewards (game-id uint) (winner principal))
+    (let (
+        (game (unwrap! (map-get? games {game-id: game-id}) ERR-GAME-NOT-FOUND))
+        (total-reward (* (get stake game) u2))
+    )
+        ;; Update game state
+        (map-set games
+            {game-id: game-id}
+            (merge game {
+                state: STATE-COMPLETED,
+                winner: (some winner)
+            })
+        )
+        
+        ;; Transfer STX reward
+        (try! (as-contract (stx-transfer? total-reward tx-sender winner)))
+        
+        ;; Request BTC reward (would be handled by separate mechanism)
+        (ok true)
+    )
+)
